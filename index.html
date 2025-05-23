@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>城市建設遊戲</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #2c3e50;
+        font-family: Arial, sans-serif;
+        overflow: hidden;
+      }
+      
+      #game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+      
+      #ui-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 1000;
+      }
+      
+      .ui-panel {
+        pointer-events: auto;
+        background-color: rgba(44, 62, 80, 0.9);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        border: 2px solid #34495e;
+      }
+      
+      .resource-panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        min-width: 200px;
+        max-height: 25vh;
+      }
+      
+      .building-panel {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 220px;
+      }
+      
+      .status-panel {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        min-width: 300px;
+        max-height: 15vh;
+      }
+      
+      .controls-panel {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+      }
+
+      .time-panel {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 250px;
+        text-align: center;
+      }
+
+      .goals-panel {
+        position: absolute;
+        top: 280px;
+        left: 10px;
+        width: 340px;
+        max-height: 30vh;
+        overflow-y: auto;
+      }
+      
+      .building-button {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+        padding: 8px;
+        background-color: #3498db;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .building-button:hover {
+        background-color: #2980b9;
+      }
+      
+      .building-button.selected {
+        background-color: #e74c3c;
+        box-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+      }
+      
+      .control-button {
+        margin: 5px;
+        padding: 8px 15px;
+        background-color: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      
+      .control-button:hover {
+        background-color: #229954;
+      }
+
+      .menu-button {
+        background-color: #e67e22;
+      }
+
+      .menu-button:hover {
+        background-color: #d35400;
+      }
+      
+      .resource-item {
+        display: flex;
+        justify-content: space-between;
+        margin: 2px 0;
+        padding: 2px 0;
+      }
+      
+      .population-info {
+        margin: 5px 0;
+        padding: 5px;
+        background-color: rgba(52, 73, 94, 0.8);
+        border-radius: 3px;
+      }
+
+      .time-info {
+        text-align: center;
+      }
+
+      .time-info div {
+        margin: 2px 0;
+      }
+
+      /* 目標面板樣式 */
+      .goals-panel h4 {
+        margin: 0 0 10px 0;
+        text-align: center;
+        color: #f39c12;
+      }
+
+      .goal-item {
+        transition: all 0.3s ease;
+      }
+
+      .goal-item:hover {
+        transform: translateX(5px);
+      }
+
+      /* 滾動條樣式 */
+      .goals-panel::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .goals-panel::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+        border-radius: 3px;
+      }
+
+      .goals-panel::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.3);
+        border-radius: 3px;
+      }
+
+      .goals-panel::-webkit-scrollbar-thumb:hover {
+        background: rgba(255,255,255,0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-container">
+      <div id="ui-overlay">
+        <!-- 資源面板 -->
+        <div class="ui-panel resource-panel">
+          <h3>🏛️ 資源</h3>
+          <div id="resource-display"></div>
+        </div>
+
+        <!-- 時間面板 -->
+        <div class="ui-panel time-panel">
+          <div id="time-display"></div>
+        </div>
+        
+        <!-- 建築面板 -->
+        <div class="ui-panel building-panel">
+          <h3>🏗️ 建築</h3>
+          <div id="building-buttons"></div>
+        </div>
+
+        <!-- 目標面板 -->
+        <div class="ui-panel goals-panel">
+          <div id="goals-display"></div>
+        </div>
+        
+        <!-- 狀態面板 -->
+        <div class="ui-panel status-panel">
+          <h3>📊 城市狀態</h3>
+          <div id="population-display"></div>
+          <div id="status-messages"></div>
+        </div>
+        
+        <!-- 控制面板 -->
+        <div class="ui-panel controls-panel">
+          <h3>⚙️ 控制</h3>
+          <button class="control-button" id="save-button">💾 儲存</button>
+          <button class="control-button" id="load-button">📁 載入</button>
+          <button class="control-button" id="pause-button">⏸️ 暫停</button>
+          <button class="control-button menu-button" id="menu-button">🏠 選單</button>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html> 

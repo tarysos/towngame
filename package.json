@@ -1,0 +1,20 @@
+{
+  "name": "town-game",
+  "version": "1.0.0",
+  "description": "城市建設類Web遊戲",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  }
+} 
